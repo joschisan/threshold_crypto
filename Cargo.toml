@@ -40,6 +40,7 @@ codec = { package = "parity-scale-codec", version = "1.2.0", default-features = 
 bincode = "1.2.1"
 criterion = "0.3.1"
 rand_xorshift = "0.2.0"
+serde_json = "1.0.82"
 
 [[bench]]
 name = "bench"

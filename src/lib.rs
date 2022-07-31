@@ -76,7 +76,7 @@ pub const SIG_SIZE: usize = 96;
 
 /// A public key.
 #[derive(Deserialize, Serialize, Copy, Clone, PartialEq, Eq)]
-pub struct PublicKey(#[serde(with = "serde_impl::projective")] G1);
+pub struct PublicKey(#[serde(with = "serde_impl::projective_publickey")] G1);
 
 impl Hash for PublicKey {
     fn hash<H: Hasher>(&self, state: &mut H) {
@@ -359,6 +359,13 @@ impl SecretKey {
     /// [`SecretKey::random()`](struct.SecretKey.html#method.random) constructor, which uses
     /// [`rand::thread_rng()`](https://docs.rs/rand/0.7.2/rand/fn.thread_rng.html) internally as its
     /// RNG.
+    
+    // pub fn sample() -> Self {
+    //     let fr = Fr::random(rng);
+    //     SecretKey()
+    // }
+
+
     pub fn random() -> Self {
         rand::random()
     }
@@ -788,7 +795,7 @@ mod tests {
 
     use std::collections::BTreeMap;
 
-    use rand::{self, distributions::Standard, random, Rng};
+    use rand::{self, distributions::Standard, random, Rng, prelude::ThreadRng};
 
     #[test]
     fn test_interpolate() {
@@ -999,7 +1006,9 @@ mod tests {
         let pk = sk.public_key();
         let ser_pk = bincode::serialize(&pk).expect("serialize public key");
         let deser_pk = bincode::deserialize(&ser_pk).expect("deserialize public key");
-        assert_eq!(ser_pk.len(), PK_SIZE);
+        let hexed_ser_pk = hex_fmt::HexFmt(&ser_pk).to_string();
+        let hex_ser_pk = serde_json::to_string(&pk).unwrap();
+        // assert_eq!(ser_pk.len(), PK_SIZE);
         assert_eq!(pk, deser_pk);
         let ser_sig = bincode::serialize(&sig).expect("serialize signature");
         let deser_sig = bincode::deserialize(&ser_sig).expect("deserialize signature");

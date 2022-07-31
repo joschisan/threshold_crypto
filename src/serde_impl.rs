@@ -218,6 +218,66 @@ pub(crate) mod projective {
     }
 }
 
+/// Serialize and Deserialize PublicKey
+pub(crate) mod projective_publickey {
+    use std::fmt;
+    use std::marker::PhantomData;
+
+    use group::{CurveAffine, CurveProjective, EncodedPoint};
+    use serde::de::Visitor;
+    use serde::{Deserializer, Serializer};
+
+    pub fn serialize<S, C>(c: &C, s: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+        C: CurveProjective,
+    {
+        let mut bytes = Vec::new();
+        for &byte in c.into_affine().into_compressed().as_ref() {
+            bytes.push(byte);
+        }
+
+        let number = hex_fmt::HexFmt(bytes).to_string();
+        
+        s.serialize_str(&number)
+    }
+
+    pub fn deserialize<'de, D, C>(d: D) -> Result<C, D::Error>
+    where
+        D: Deserializer<'de>,
+        C: CurveProjective,
+    {
+        struct TupleVisitor<C> {
+            _ph: PhantomData<C>,
+        }
+
+        impl<'de, C: CurveProjective> Visitor<'de> for TupleVisitor<C> {
+            type Value = C;
+
+            fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                let len = <C::Affine as CurveAffine>::Compressed::size();
+                write!(f, "a tuple of size {}", len)
+            }
+
+            #[inline]
+            fn visit_str<E>(self, v: &str) -> Result<C, E> {
+                let mut compressed = <C::Affine as CurveAffine>::Compressed::empty();
+                let mut v = v.chars();
+
+                for byte in compressed.as_mut().iter_mut() {
+                    let s: String = vec![v.next().expect("first char missing"), 
+                                         v.next().expect("second char missing")]
+                                        .into_iter().collect();
+                    let n = u8::from_str_radix(s.as_str(), 16).expect("reduxed number wasn't a number");
+                    *byte = n;
+                }
+                Ok(compressed.into_affine().map_err(|i| i).unwrap().into_projective())
+            }
+        }
+        d.deserialize_str(TupleVisitor { _ph: PhantomData })
+    }
+}
+
 /// Serialization and deserialization of vectors of projective curve elements.
 pub(crate) mod projective_vec {
     use std::borrow::Borrow;
@@ -414,5 +474,20 @@ mod tests {
             #[cfg(not(feature = "use-insecure-test-only-mock-crypto"))]
             assert_eq!(ser_val.len(), 32);
         }
+    }
+
+    #[test]
+    fn serde_public_key() {
+        use crate::{PublicKey, SecretKey};
+        use serde_json;
+
+        let sk = SecretKey::random();
+        let pk0 = sk.public_key();
+
+        let ser_pk = serde_json::to_string(&pk0).unwrap();
+        let pk: PublicKey = serde_json::from_str(&ser_pk).expect("From slide went bad");
+        let pk1 = PublicKey(pk.0);
+
+        assert_eq!(pk0, pk1);
     }
 }
