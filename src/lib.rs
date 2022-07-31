@@ -1006,10 +1006,11 @@ mod tests {
         let pk = sk.public_key();
         let ser_pk = bincode::serialize(&pk).expect("serialize public key");
         let deser_pk = bincode::deserialize(&ser_pk).expect("deserialize public key");
-        let hexed_ser_pk = hex_fmt::HexFmt(&ser_pk).to_string();
-        let hex_ser_pk = serde_json::to_string(&pk).unwrap();
-        // assert_eq!(ser_pk.len(), PK_SIZE);
+        let serde_ser_pk = serde_json::to_string(&pk).expect("serde_json serialize public key");
+        let serde_deser_pk: PublicKey = serde_json::from_str(&serde_ser_pk).expect("serde_json deserialized public key");
+        assert_eq!(serde_ser_pk.chars().count(), PK_SIZE * 2 + 2); // accounts for that each hex byte has 2 chars, and theres leading and trailing '"'
         assert_eq!(pk, deser_pk);
+        assert_eq!(pk, serde_deser_pk);
         let ser_sig = bincode::serialize(&sig).expect("serialize signature");
         let deser_sig = bincode::deserialize(&ser_sig).expect("deserialize signature");
         assert_eq!(ser_sig.len(), SIG_SIZE);

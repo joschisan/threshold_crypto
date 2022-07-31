@@ -475,19 +475,4 @@ mod tests {
             assert_eq!(ser_val.len(), 32);
         }
     }
-
-    #[test]
-    fn serde_public_key() {
-        use crate::{PublicKey, SecretKey};
-        use serde_json;
-
-        let sk = SecretKey::random();
-        let pk0 = sk.public_key();
-
-        let ser_pk = serde_json::to_string(&pk0).unwrap();
-        let pk: PublicKey = serde_json::from_str(&ser_pk).expect("From slide went bad");
-        let pk1 = PublicKey(pk.0);
-
-        assert_eq!(pk0, pk1);
-    }
 }
