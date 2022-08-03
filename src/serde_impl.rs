@@ -278,6 +278,59 @@ pub(crate) mod projective_publickey {
     }
 }
 
+/// Serialize and Deserialize PublicKeySet
+pub(crate) mod projective_publickeyset {
+    use std::borrow::Borrow;
+    use std::iter::FromIterator;
+    use std::marker::PhantomData;
+
+    use group::CurveProjective;
+    use serde::{Deserialize, Deserializer, Serialize, Serializer};
+
+    use super::projective_publickey;
+
+    /// A wrapper type to facilitate serialization and deserialization of group elements.
+    struct CurveWrap<C, B>(B, PhantomData<C>);
+
+    impl<C, B> CurveWrap<C, B> {
+        fn new(c: B) -> Self {
+            CurveWrap(c, PhantomData)
+        }
+    }
+
+    impl<C: CurveProjective, B: Borrow<C>> Serialize for CurveWrap<C, B> {
+        fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+            projective_publickey::serialize(self.0.borrow(), s)
+        }
+    }
+
+    impl<'de, C: CurveProjective> Deserialize<'de> for CurveWrap<C, C> {
+        fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+            Ok(CurveWrap::new(projective_publickey::deserialize(d)?))
+        }
+    }
+
+    pub fn serialize<S, C, T>(vec: T, s: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+        C: CurveProjective,
+        T: AsRef<[C]>,
+    {
+        let wrap_vec: Vec<CurveWrap<C, &C>> = vec.as_ref().iter().map(CurveWrap::new).collect();
+        wrap_vec.serialize(s)
+    }
+
+    pub fn deserialize<'de, D, C, T>(d: D) -> Result<T, D::Error>
+    where
+        D: Deserializer<'de>,
+        C: CurveProjective,
+        T: FromIterator<C>,
+    {
+        let wrap_vec = <Vec<CurveWrap<C, C>>>::deserialize(d)?;
+        Ok(wrap_vec.into_iter().map(|CurveWrap(c, _)| c).collect())
+    }
+}
+
 /// Serialization and deserialization of vectors of projective curve elements.
 pub(crate) mod projective_vec {
     use std::borrow::Borrow;

@@ -428,7 +428,7 @@ impl Poly {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Commitment {
     /// The coefficients of the polynomial.
-    #[serde(with = "super::serde_impl::projective_vec")]
+    #[serde(with = "super::serde_impl::projective_publickeyset")]
     pub(super) coeff: Vec<G1>,
 }
 
