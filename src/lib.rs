@@ -359,13 +359,6 @@ impl SecretKey {
     /// [`SecretKey::random()`](struct.SecretKey.html#method.random) constructor, which uses
     /// [`rand::thread_rng()`](https://docs.rs/rand/0.7.2/rand/fn.thread_rng.html) internally as its
     /// RNG.
-    
-    // pub fn sample() -> Self {
-    //     let fr = Fr::random(rng);
-    //     SecretKey()
-    // }
-
-
     pub fn random() -> Self {
         rand::random()
     }
@@ -795,7 +788,7 @@ mod tests {
 
     use std::collections::BTreeMap;
 
-    use rand::{self, distributions::Standard, random, Rng, prelude::ThreadRng};
+    use rand::{self, distributions::Standard, random, Rng};
 
     #[test]
     fn test_interpolate() {
