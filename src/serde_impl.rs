@@ -218,6 +218,119 @@ pub(crate) mod projective {
     }
 }
 
+/// Serialize and Deserialize PublicKey
+pub(crate) mod projective_publickey {
+    use std::fmt;
+    use std::marker::PhantomData;
+
+    use group::{CurveAffine, CurveProjective, EncodedPoint};
+    use serde::de::Visitor;
+    use serde::{Deserializer, Serializer};
+
+    pub fn serialize<S, C>(c: &C, s: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+        C: CurveProjective,
+    {
+        let mut bytes = Vec::new();
+        for &byte in c.into_affine().into_compressed().as_ref() {
+            bytes.push(byte);
+        }
+
+        let number = hex_fmt::HexFmt(bytes).to_string();
+        
+        s.serialize_str(&number)
+    }
+
+    pub fn deserialize<'de, D, C>(d: D) -> Result<C, D::Error>
+    where
+        D: Deserializer<'de>,
+        C: CurveProjective,
+    {
+        struct TupleVisitor<C> {
+            _ph: PhantomData<C>,
+        }
+
+        impl<'de, C: CurveProjective> Visitor<'de> for TupleVisitor<C> {
+            type Value = C;
+
+            fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                let len = <C::Affine as CurveAffine>::Compressed::size();
+                write!(f, "a tuple of size {}", len)
+            }
+
+            #[inline]
+            fn visit_str<E>(self, v: &str) -> Result<C, E> {
+                let mut compressed = <C::Affine as CurveAffine>::Compressed::empty();
+                let mut v = v.chars();
+
+                for byte in compressed.as_mut().iter_mut() {
+                    let s: String = vec![v.next().expect("first char missing"), 
+                                         v.next().expect("second char missing")]
+                                        .into_iter().collect();
+                    let n = u8::from_str_radix(s.as_str(), 16).expect("reduxed number wasn't a number");
+                    *byte = n;
+                }
+                Ok(compressed.into_affine().map_err(|i| i).unwrap().into_projective())
+            }
+        }
+        d.deserialize_str(TupleVisitor { _ph: PhantomData })
+    }
+}
+
+/// Serialize and Deserialize PublicKeySet
+pub(crate) mod projective_publickeyset {
+    use std::borrow::Borrow;
+    use std::iter::FromIterator;
+    use std::marker::PhantomData;
+
+    use group::CurveProjective;
+    use serde::{Deserialize, Deserializer, Serialize, Serializer};
+
+    use super::projective_publickey;
+
+    /// A wrapper type to facilitate serialization and deserialization of group elements.
+    struct CurveWrap<C, B>(B, PhantomData<C>);
+
+    impl<C, B> CurveWrap<C, B> {
+        fn new(c: B) -> Self {
+            CurveWrap(c, PhantomData)
+        }
+    }
+
+    impl<C: CurveProjective, B: Borrow<C>> Serialize for CurveWrap<C, B> {
+        fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+            projective_publickey::serialize(self.0.borrow(), s)
+        }
+    }
+
+    impl<'de, C: CurveProjective> Deserialize<'de> for CurveWrap<C, C> {
+        fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+            Ok(CurveWrap::new(projective_publickey::deserialize(d)?))
+        }
+    }
+
+    pub fn serialize<S, C, T>(vec: T, s: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+        C: CurveProjective,
+        T: AsRef<[C]>,
+    {
+        let wrap_vec: Vec<CurveWrap<C, &C>> = vec.as_ref().iter().map(CurveWrap::new).collect();
+        wrap_vec.serialize(s)
+    }
+
+    pub fn deserialize<'de, D, C, T>(d: D) -> Result<T, D::Error>
+    where
+        D: Deserializer<'de>,
+        C: CurveProjective,
+        T: FromIterator<C>,
+    {
+        let wrap_vec = <Vec<CurveWrap<C, C>>>::deserialize(d)?;
+        Ok(wrap_vec.into_iter().map(|CurveWrap(c, _)| c).collect())
+    }
+}
+
 /// Serialization and deserialization of vectors of projective curve elements.
 pub(crate) mod projective_vec {
     use std::borrow::Borrow;
