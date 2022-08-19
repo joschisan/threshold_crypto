@@ -18,6 +18,7 @@ use ff::{Field, PrimeField, ScalarEngine};
 use group::{CurveAffine, CurveProjective, EncodedPoint, GroupDecodingError};
 use pairing::{Engine, PairingCurveAffine};
 use rand::RngCore;
+use zeroize::Zeroize;
 
 pub use self::ms8::Mersenne8;
 
@@ -66,20 +67,20 @@ impl PairingCurveAffine for Ms8Affine {
     }
 }
 
-impl From<Ms8Projective> for Ms8Affine {
+impl Scalarom<Ms8Projective> for Ms8Affine {
     fn from(Ms8Projective(x): Ms8Projective) -> Ms8Affine {
         Ms8Affine(x)
     }
 }
 
-impl From<Ms8Affine> for Ms8Projective {
+impl Scalarom<Ms8Affine> for Ms8Projective {
     fn from(Ms8Affine(x): Ms8Affine) -> Ms8Projective {
         Ms8Projective(x)
     }
 }
 
 impl ScalarEngine for Mocktography {
-    type Fr = Mersenne8;
+    type Scalar = Mersenne8;
 }
 
 impl Engine for Mocktography {
@@ -246,7 +247,7 @@ impl CurveProjective for Ms8Projective {
         self.0 *= other.into();
     }
 
-    fn into_affine(&self) -> Self::Affine {
+    fn to_affine(&self) -> Self::Affine {
         Ms8Affine(self.0)
     }
 
@@ -271,16 +272,34 @@ impl EncodedPoint for Ms8Affine {
         mem::size_of::<Self>()
     }
 
-    fn into_affine(&self) -> Result<Self::Affine, GroupDecodingError> {
+    fn to_affine(&self) -> Result<Self::Affine, GroupDecodingError> {
         Ok(*self)
     }
 
-    fn into_affine_unchecked(&self) -> Result<Self::Affine, GroupDecodingError> {
+    fn to_affine_unchecked(&self) -> Result<Self::Affine, GroupDecodingError> {
         Ok(*self)
     }
 
     fn from_affine(affine: Self::Affine) -> Self {
         affine
+    }
+}
+
+impl Zeroize for Ms8Affine {
+    fn zeroize(&mut self) {
+        self.0.0 = 0;
+    }
+}
+
+impl Zeroize for Ms8Projective {
+    fn zeroize(&mut self) {
+        self.0.0 = 0;
+    }
+}
+
+impl Zeroize for Mersenne8 {
+    fn zeroize(&mut self) {
+        self.0 = 0;
     }
 }
 

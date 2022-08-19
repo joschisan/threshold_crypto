@@ -9,6 +9,7 @@
 
 use std::io::{self, Read, Write};
 use std::{fmt, mem, ops};
+use std::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
 use byteorder::{BigEndian, ByteOrder};
 use ff::{Field, LegendreSymbol, PrimeField, PrimeFieldDecodingError, PrimeFieldRepr, SqrtField};
@@ -171,7 +172,7 @@ impl From<u64> for Mersenne8 {
     }
 }
 
-impl From<Mersenne8> for u32 {
+impl Scalarom<Mersenne8> for u32 {
     fn from(v: Mersenne8) -> u32 {
         v.0
     }
@@ -190,8 +191,192 @@ impl fmt::Display for Mersenne8 {
     }
 }
 
+impl subtle::ConditionallySelectable for Mersenne8 {}
+
+impl subtle::ConstantTimeEq for Mersenne8 {}
+
+impl Add<Output=Self> for Mersenne8 {
+    type Output = ();
+
+    fn add(self, rhs: Self) -> Self::Output {
+        todo!()
+    }
+}
+
+impl Sub<Output=Self> for Mersenne8 {
+    type Output = ();
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        todo!()
+    }
+}
+
+impl Mul<Output=Self> for Mersenne8 {
+    type Output = ();
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        todo!()
+    }
+}
+
+impl Neg<Output=Self> for Mersenne8 {
+    type Output = ();
+
+    fn neg(self) -> Self::Output {
+        todo!()
+    }
+}
+
+impl Add<&'a Self, Output=Self> for Mersenne8 {
+    type Output = ();
+
+    fn add(self, rhs: &'a Self) -> Self::Output {
+        todo!()
+    }
+}
+
+impl Mul<&'a Self, Output=Self> for Mersenne8 {
+    type Output = ();
+
+    fn mul(self, rhs: &'a Self) -> Self::Output {
+        todo!()
+    }
+}
+
+impl Sub<&'a Self, Output=Self> for Mersenne8 {
+    type Output = ();
+
+    fn sub(self, rhs: &'a Self) -> Self::Output {
+        todo!()
+    }
+}
+
+impl MulAssign for Mersenne8 {
+    fn mul_assign(&mut self, rhs: Self) {
+        todo!()
+    }
+}
+
+impl AddAssign for Mersenne8 {
+    fn add_assign(&mut self, rhs: Self) {
+        todo!()
+    }
+}
+
+impl SubAssign for Mersenne8 {
+    fn sub_assign(&mut self, rhs: Self) {
+        todo!()
+    }
+}
+
+impl MulAssign<&'a Self> for Mersenne8 {
+    fn mul_assign(&mut self, rhs: &'a Self) {
+        todo!()
+    }
+}
+
+impl AddAssign<&'a Self> for Mersenne8 {
+    fn add_assign(&mut self, rhs: &'a Self) {
+        todo!()
+    }
+}
+
+impl SubAssign<&'a Self> for Mersenne8 {
+    fn sub_assign(&mut self, rhs: &'a Self) {
+        todo!()
+    }
+}
+
+impl subtle::ConditionallySelectable for Mersenne8 {}
+
+impl subtle::ConstantTimeEq for Mersenne8 {}
+
+impl Add<Output=Self> for Mersenne8 {
+    type Output = ();
+
+    fn add(self, rhs: Self) -> Self::Output {
+        todo!()
+    }
+}
+
+impl Sub<Output=Self> for Mersenne8 {
+    type Output = ();
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        todo!()
+    }
+}
+
+impl Mul<Output=Self> for Mersenne8 {
+    type Output = ();
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        todo!()
+    }
+}
+
+impl Add<&'a Self, Output=Self> for Mersenne8 {
+    type Output = ();
+
+    fn add(self, rhs: &'a Self) -> Self::Output {
+        todo!()
+    }
+}
+
+impl Mul<&'a Self, Output=Self> for Mersenne8 {
+    type Output = ();
+
+    fn mul(self, rhs: &'a Self) -> Self::Output {
+        todo!()
+    }
+}
+
+impl Sub<&'a Self, Output=Self> for Mersenne8 {
+    type Output = ();
+
+    fn sub(self, rhs: &'a Self) -> Self::Output {
+        todo!()
+    }
+}
+
+impl MulAssign for Mersenne8 {
+    fn mul_assign(&mut self, rhs: Self) {
+        todo!()
+    }
+}
+
+impl AddAssign for Mersenne8 {
+    fn add_assign(&mut self, rhs: Self) {
+        todo!()
+    }
+}
+
+impl SubAssign for Mersenne8 {
+    fn sub_assign(&mut self, rhs: Self) {
+        todo!()
+    }
+}
+
+impl MulAssign<&'a Self> for Mersenne8 {
+    fn mul_assign(&mut self, rhs: &'a Self) {
+        todo!()
+    }
+}
+
+impl AddAssign<&'a Self> for Mersenne8 {
+    fn add_assign(&mut self, rhs: &'a Self) {
+        todo!()
+    }
+}
+
+impl SubAssign<&'a Self> for Mersenne8 {
+    fn sub_assign(&mut self, rhs: &'a Self) {
+        todo!()
+    }
+}
+
 impl Field for Mersenne8 {
-    fn random<R: RngCore + ?Sized>(rng: &mut R) -> Self {
+    fn random(mut rng: impl RngCore) -> Self {
         Mersenne8::from(rng.next_u32())
     }
 
@@ -221,28 +406,7 @@ impl Field for Mersenne8 {
         self.0 = (self.0 * 2) % MS8;
     }
 
-    #[inline]
-    fn negate(&mut self) {
-        self.0 = (Self::zero() - *self).0;
-    }
-
-    #[inline]
-    fn add_assign(&mut self, other: &Self) {
-        *self += other;
-    }
-
-    #[inline]
-    fn sub_assign(&mut self, other: &Self) {
-        *self -= other;
-    }
-
-    #[inline]
-    fn mul_assign(&mut self, other: &Self) {
-        *self *= other;
-    }
-
-    #[inline]
-    fn inverse(&self) -> Option<Self> {
+    fn invert(&self) -> subtle::CtOption<Self> {
         let (d, _s, t) = ext_euclid(MS8, self.0);
 
         // MS8 is prime, so the gcd should always be 1, unless the number itself is 0.
@@ -256,10 +420,8 @@ impl Field for Mersenne8 {
         ))
     }
 
-    #[inline]
-    fn frobenius_map(&mut self, _power: usize) {
-        // Does nothing, the frobenius endomorphism is the identity function in every finite field
-        // of prime order.
+    fn sqrt(&self) -> subtle::CtOption<Self> {
+        unimplemented!() // FIXME, could use Tonelli-Shanks algorithm
     }
 }
 
@@ -319,7 +481,7 @@ impl SqrtField for Mersenne8 {
     }
 
     fn sqrt(&self) -> Option<Self> {
-        unimplemented!() // FIXME, could use Tonelli-Shanks algorithm
+
     }
 }
 

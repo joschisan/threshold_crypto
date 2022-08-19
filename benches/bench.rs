@@ -1,7 +1,7 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 use ff::Field;
 use threshold_crypto::poly::Poly;
-use threshold_crypto::Fr;
+use threshold_crypto::Scalar;
 
 const TEST_DEGREES: [usize; 4] = [5, 10, 20, 40];
 const TEST_THRESHOLDS: [usize; 4] = [5, 10, 20, 40];
@@ -72,7 +72,7 @@ mod poly_benches {
                 b.iter_with_setup(
                     || {
                         (0..=deg)
-                            .map(|i| (i, Fr::random(&mut rng)))
+                            .map(|i| (i, Scalar::random(&mut rng)))
                             .collect::<Vec<_>>()
                     },
                     Poly::interpolate,
