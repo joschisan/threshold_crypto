@@ -103,6 +103,10 @@ impl Ord for PublicKey {
 }
 
 impl PublicKey {
+    pub fn from(g1: G1Projective) -> Self {
+        PublicKey(g1)
+    }
+
     /// Returns `true` if the signature matches the element of `G2`.
     pub fn verify_g2<H: Into<G2Affine>>(&self, sig: &Signature, hash: H) -> bool {
         // TODO: why do we need to call to_affine now?
