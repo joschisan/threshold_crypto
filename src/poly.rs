@@ -496,6 +496,10 @@ impl<B: Borrow<Commitment>> ops::Add<B> for Commitment {
 }
 
 impl Commitment {
+    pub fn from(coeff: Vec<G1Projective>) -> Self {
+        Self { coeff }
+    }
+
     /// Returns the polynomial's degree.
     pub fn degree(&self) -> usize {
         self.coeff.len() - 1
