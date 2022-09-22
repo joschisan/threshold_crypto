@@ -365,7 +365,7 @@ pub(crate) mod projective_publickeyset {
 }
 
 /// Serialization and deserialization of vectors of projective curve elements.
-pub(crate) mod projective_vec {
+pub mod projective_vec {
     use std::borrow::Borrow;
     use std::iter::FromIterator;
     use std::marker::PhantomData;
