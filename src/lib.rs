@@ -31,6 +31,7 @@ use std::cmp::Ordering;
 use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::ops::{AddAssign, Mul, MulAssign, SubAssign};
+use std::slice::Iter;
 use std::vec::Vec;
 
 use ff::Field;
@@ -560,6 +561,11 @@ impl From<Commitment> for PublicKeySet {
 }
 
 impl PublicKeySet {
+    /// Returns the coefficients representing the pk shares of the set
+    pub fn coefficients(&self) -> Iter<G1Projective> {
+        self.commit.coeff.iter()
+    }
+
     /// Returns the threshold `t`: any set of `t + 1` signature shares can be combined into a full
     /// signature.
     pub fn threshold(&self) -> usize {
