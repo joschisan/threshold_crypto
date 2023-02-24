@@ -1,10 +1,14 @@
 use std::cmp::Ordering;
 
-use group::{CurveAffine, CurveProjective};
+use group::{Curve, Group, GroupEncoding};
 
+// FIXME: probably get rid of this?
 /// Compares two curve elements and returns their `Ordering`.
-pub fn cmp_projective<G: CurveProjective>(x: &G, y: &G) -> Ordering {
-    let xc = x.into_affine().into_compressed();
-    let yc = y.into_affine().into_compressed();
+pub fn cmp_projective<G>(x: &G, y: &G) -> Ordering where
+    G: Curve,
+    G::AffineRepr: GroupEncoding
+{
+    let xc = x.to_affine().to_bytes();
+    let yc = y.to_affine().to_bytes();
     xc.as_ref().cmp(yc.as_ref())
 }

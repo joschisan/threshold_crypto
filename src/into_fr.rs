@@ -1,56 +1,55 @@
-use super::Fr;
-use ff::{Field, PrimeField};
+use bls12_381::Scalar;
+use pairing::group::ff::PrimeField;
 
-/// A conversion into an element of the field `Fr`.
-pub trait IntoFr: Copy {
+/// A conversion into an element of the field `Scalar`.
+pub trait IntoScalar: Copy {
     /// Converts `self` to a field element.
-    fn into_fr(self) -> Fr;
+    fn into_fr(self) -> Scalar;
 }
 
-impl IntoFr for Fr {
-    fn into_fr(self) -> Fr {
+impl IntoScalar for Scalar {
+    fn into_fr(self) -> Scalar {
         self
     }
 }
 
-impl IntoFr for u64 {
-    fn into_fr(self) -> Fr {
-        Fr::from_repr(self.into()).expect("modulus is greater than u64::MAX")
+impl IntoScalar for u64 {
+    fn into_fr(self) -> Scalar {
+        Scalar::from(self)
     }
 }
 
-impl IntoFr for usize {
-    fn into_fr(self) -> Fr {
+impl IntoScalar for usize {
+    fn into_fr(self) -> Scalar {
         (self as u64).into_fr()
     }
 }
 
-impl IntoFr for i32 {
-    fn into_fr(self) -> Fr {
+impl IntoScalar for i32 {
+    fn into_fr(self) -> Scalar {
         if self >= 0 {
             (self as u64).into_fr()
         } else {
             let mut result = ((-self) as u64).into_fr();
-            result.negate();
+            result.neg()
+        }
+    }
+}
+
+impl IntoScalar for i64 {
+    fn into_fr(self) -> Scalar {
+        if self >= 0 {
+            (self as u64).into_fr()
+        } else {
+            let mut result = ((-self) as u64).into_fr();
+            result.neg();
             result
         }
     }
 }
 
-impl IntoFr for i64 {
-    fn into_fr(self) -> Fr {
-        if self >= 0 {
-            (self as u64).into_fr()
-        } else {
-            let mut result = ((-self) as u64).into_fr();
-            result.negate();
-            result
-        }
-    }
-}
-
-impl<'a, T: IntoFr> IntoFr for &'a T {
-    fn into_fr(self) -> Fr {
+impl<'a, T: IntoScalar> IntoScalar for &'a T {
+    fn into_fr(self) -> Scalar {
         (*self).into_fr()
     }
 }

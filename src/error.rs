@@ -34,11 +34,11 @@ mod tests {
 
 /// An error reading a structure from an array of bytes.
 #[derive(Clone, Eq, PartialEq, Debug, Error)]
-pub enum FromBytesError {
+pub enum ScalaromBytesError {
     /// Invalid representation
     #[error("Invalid representation.")]
     Invalid,
 }
 
 /// The result of attempting to read a structure from an array of bytes.
-pub type FromBytesResult<T> = ::std::result::Result<T, FromBytesError>;
+pub type ScalaromBytesResult<T> = ::std::result::Result<T, ScalaromBytesError>;
