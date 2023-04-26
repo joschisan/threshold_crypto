@@ -28,6 +28,7 @@ pub mod serde_impl;
 
 use std::borrow::Borrow;
 use std::cmp::Ordering;
+use std::convert::TryInto;
 use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::ops::{AddAssign, Mul, MulAssign, SubAssign};
@@ -516,6 +517,44 @@ impl Ciphertext {
         let hash = hash_g1_g2(*u, v);
         PEngine::pairing(&G1Affine::generator(), &w.to_affine()) == PEngine::pairing(&u.to_affine(), &hash.to_affine())
     }
+
+    /// Serializes the ciphertext into a byte vector.
+    pub fn to_bytes(&self) -> Vec<u8> {
+        let Ciphertext(ref u, ref v, ref w) = *self;
+
+        let mut bytes = Vec::with_capacity(48 + 96 + v.len());
+        bytes.extend_from_slice(&u.to_affine().to_compressed());
+        bytes.extend_from_slice(&w.to_affine().to_compressed());
+        bytes.extend_from_slice(&v);
+        bytes
+    }
+
+    // FIXME: make CT
+    /// Deserializes a ciphertext from a byte slice.
+    pub fn from_bytes(bytes: &[u8]) -> Option<Self> {
+        if bytes.len() < 48 + 96 {
+            return None;
+        }
+
+
+        let u_bytes: [u8; 48] = bytes[..48].try_into().expect("slice has correct length");
+        let u_res = G1Affine::from_compressed(&u_bytes);
+        if u_res.is_none().unwrap_u8() == 1 {
+            return None;
+        }
+
+        let w_bytes: [u8; 96] = bytes[48..48 + 96].try_into().expect("slice has correct length");
+        let w_res = G2Affine::from_compressed(&w_bytes);
+        if w_res.is_none().unwrap_u8() == 1 {
+            return None;
+        }
+
+        let u = G1Projective::from(u_res.unwrap());
+        let w = G2Projective::from(w_res.unwrap());
+        let v = bytes[48 + 96..].to_vec();
+
+        Some(Ciphertext(u, v, w))
+    }
 }
 
 /// A decryption share. A threshold of decryption shares can be used to decrypt a message.
@@ -894,6 +933,11 @@ mod tests {
         let msg = b"Muffins in the canteen today! Don't tell Eve!";
         let ciphertext = pk_bob.encrypt(&msg[..]);
         assert!(ciphertext.verify());
+
+        // Encoding/decoding ciphertexts works
+        let ciphertext_bytes = ciphertext.to_bytes();
+        let decoded_ciphertext = Ciphertext::from_bytes(&ciphertext_bytes).expect("invalid ciphertext");
+        assert_eq!(ciphertext, decoded_ciphertext);
 
         // Bob can decrypt the message.
         let decrypted = sk_bob.decrypt(&ciphertext).expect("invalid ciphertext");
