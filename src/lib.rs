@@ -561,6 +561,23 @@ impl Ciphertext {
 #[derive(Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct DecryptionShare(#[serde(with = "serde_impl::projective")] G1Projective);
 
+impl DecryptionShare {
+    /// Serializes the decryption share into a byte vector.
+    pub fn to_bytes(&self) -> [u8; 48] {
+        self.0.to_affine().to_compressed()
+    }
+
+    // FIXME: make CT
+    /// Deserializes a decryption share from a byte slice.
+    pub fn from_bytes(bytes: &[u8; 48]) -> Option<Self> {
+        let res = G1Affine::from_compressed(bytes);
+        if res.is_none().unwrap_u8() == 1 {
+            return None;
+        }
+        Some(DecryptionShare(G1Projective::from(res.unwrap())))
+    }
+}
+
 impl Distribution<DecryptionShare> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> DecryptionShare {
         DecryptionShare(G1Projective::random(rng))
@@ -978,6 +995,13 @@ mod tests {
                     .secret_key_share(i)
                     .decrypt_share(&ciphertext)
                     .expect("ciphertext is invalid");
+
+                let encoded_decryption_share = dec_share.to_bytes();
+                let decoded_encryption_share =
+                    DecryptionShare::from_bytes(&encoded_decryption_share)
+                        .expect("invalid decryption share");
+                assert_eq!(dec_share, decoded_encryption_share);
+
                 (i, dec_share)
             })
             .collect();
