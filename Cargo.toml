@@ -19,20 +19,20 @@ description = "Pairing threshold cryptography (Fedimint fork)"
 edition = "2018"
 
 [dependencies]
-bls12_381 = { version = "0.7.0", features = [ "zeroize", "groups" ] }
-byteorder = "1.3.4"
-ff = "0.12.0"
-group = "0.12.0"
+bls12_381 = { version = "0.8.0", features = [ "zeroize", "groups" ] }
+byteorder = "1.5.0"
+ff = "0.13.0"
+group = "0.13.0"
 hex_fmt = "0.3.0"
-log = "0.4.8"
-pairing = "0.22.0"
+log = "0.4.21"
+pairing = "0.23.0"
 rand = "0.8.5"
 rand_chacha = "0.3.1"
-serde = { version = "1.0.104", features = ["derive"] }
-subtle = "2.4.1"
-thiserror = "1.0.22"
-tiny-keccak = { version = "2.0.1", features = ["sha3"] }
-zeroize = "1.1.0"
+serde = { version = "1.0.199", features = ["derive"] }
+subtle = "2.5.0"
+thiserror = "1.0.59"
+tiny-keccak = { version = "2.0.2", features = ["sha3"] }
+zeroize = "1.7.0"
 
 # optional
 bincode = { version = "1.2.1", optional = true }

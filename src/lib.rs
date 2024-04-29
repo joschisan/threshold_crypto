@@ -806,13 +806,13 @@ where
 
     // Compute the products `x_prod[i]` of all but the `i`-th entry.
     let mut x_prod: Vec<C::Scalar> = Vec::with_capacity(t);
-    let mut tmp = C::Scalar::one();
+    let mut tmp = C::Scalar::ONE;
     x_prod.push(tmp);
     for (x, _) in samples.iter().take(t) {
         tmp.mul_assign(*x);
         x_prod.push(tmp);
     }
-    tmp = C::Scalar::one();
+    tmp = C::Scalar::ONE;
     for (i, (x, _)) in samples[1..].iter().enumerate().rev() {
         tmp.mul_assign(*x);
         x_prod[i].mul_assign(tmp);
@@ -822,7 +822,7 @@ where
     for (mut l0, (x, sample)) in x_prod.into_iter().zip(&samples) {
         // Compute the value at 0 of the Lagrange polynomial that is `0` at the other data
         // points but `1` at `x`.
-        let mut denom = C::Scalar::one();
+        let mut denom = C::Scalar::ONE;
         for (x0, _) in samples.iter().filter(|(x0, _)| x0 != x) {
             let mut diff = *x0;
             diff.sub_assign(x);
